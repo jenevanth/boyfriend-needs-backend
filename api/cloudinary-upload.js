@@ -31,8 +31,12 @@ export default async function handler(req, res) {
       fileBase64 = `data:image/png;base64,${fileBase64}`;
     }
 
+    // Log what you are sending to Cloudinary
+    console.log('Uploading to Cloudinary:', fileBase64.substring(0, 50));
+
     const result = await cloudinary.v2.uploader.upload(fileBase64, {
       upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      resource_type: 'image',
     });
     res.status(200).json({ url: result.secure_url });
   } catch (err) {
