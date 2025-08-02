@@ -18,17 +18,26 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   try {
-    console.log('Received body:', req.body); // Log the incoming body
-    const { fileBase64 } = req.body;
+    console.log('Received body:', req.body);
+    let { fileBase64 } = req.body;
     if (!fileBase64) {
       console.error('No fileBase64 found in request body');
       return res
         .status(400)
         .json({ error: 'No fileBase64 found in request body' });
     }
-    const result = await cloudinary.v2.uploader.upload(fileBase64, {
-      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
-    });
+
+    // Remove the data URL prefix if present
+    if (fileBase64.startsWith('data:')) {
+      fileBase64 = fileBase64.split(',')[1];
+    }
+
+    const result = await cloudinary.v2.uploader.upload(
+      `data:image/png;base64,${fileBase64}`,
+      {
+        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      },
+    );
     res.status(200).json({ url: result.secure_url });
   } catch (err) {
     console.error('Cloudinary upload error:', err);
